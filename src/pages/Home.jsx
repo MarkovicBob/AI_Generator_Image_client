@@ -30,39 +30,31 @@ function Home() {
   const [showQuickPrompts, setShowQuickPrompts] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [favorites, setFavorites] = useState([]);
-  // Load favorites from localStorage on mount
+  // Load favorites and image history from backend on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("favorites");
-      if (stored) setFavorites(JSON.parse(stored));
-    } catch (e) {
-      console.warn("Could not read favorites from localStorage", e);
-    }
-  }, []);
-
-  // Persist favorites to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    } catch (e) {
-      console.warn("Could not save favorites to localStorage", e);
-    }
-  }, [favorites]);
-
-  // Load image history from backend on mount
-  useEffect(() => {
-    const loadHistory = async () => {
+    const loadData = async () => {
       try {
         const res = await axios.get("http://localhost:3000/images");
         if (Array.isArray(res.data)) {
-          setImageHistory(res.data.reverse()); // newest first
+          const images = res.data.reverse(); // newest first
+          setImageHistory(images);
+
+          // Extract favorites from the loaded images
+          const favImages = images.filter((img) => img.isFavorite);
+          setFavorites(favImages);
         }
       } catch (e) {
-        // backend may not support persistence yet
-        console.warn("Could not load image history from backend", e.message);
+        console.warn("Could not load images from backend", e.message);
+        // Fallback to localStorage for favorites
+        try {
+          const stored = localStorage.getItem("favorites");
+          if (stored) setFavorites(JSON.parse(stored));
+        } catch (err) {
+          console.warn("Could not read favorites from localStorage", err);
+        }
       }
     };
-    loadHistory();
+    loadData();
   }, []);
 
   const [keepPrompt, setKeepPrompt] = useState(false); // opcija da zadrži stari prompt
@@ -86,19 +78,14 @@ function Home() {
 
       const newImage = {
         ...response.data,
-        id: Date.now(),
+        id: response.data.id || Date.now(),
         timestamp: new Date().toLocaleString(),
       };
 
-      // Try to save generated image to backend storage
-      try {
-        await axios.post("http://localhost:3000/images", newImage);
-      } catch (e) {
-        console.warn("Could not save image to backend storage", e.message);
-      }
       setGeneratedImage(newImage);
-      setImageHistory((prev) => [newImage, ...prev.slice(0, 19)]); // Keep last 20 images
+      setImageHistory((prev) => [newImage, ...prev.slice(0, 19)]);
       toast.success("Slika je uspešno generirana!");
+
       if (!keepPrompt) {
         setPrompt("");
       }
@@ -134,17 +121,52 @@ function Home() {
     }
   };
 
-  const toggleFavorite = (image) => {
-    setFavorites((prev) => {
-      const isFavorite = prev.some((fav) => fav.id === image.id);
-      if (isFavorite) {
-        toast.info("Uklonjeno iz omiljenih");
-        return prev.filter((fav) => fav.id !== image.id);
-      } else {
-        toast.success("Dodato u omiljene!");
-        return [...prev, image];
+  const toggleFavorite = async (image) => {
+    try {
+      const imageId = image._id || image.id;
+      const response = await axios.post(
+        `http://localhost:3000/images/${imageId}/favorite`
+      );
+
+      if (response.data.success) {
+        // Update local favorites state
+        setFavorites((prev) => {
+          const isFavorite = response.data.isFavorite;
+          if (isFavorite) {
+            toast.success("Dodato u omiljene!");
+            // Add to favorites if not already there
+            const exists = prev.some((fav) => (fav._id || fav.id) === imageId);
+            return exists ? prev : [...prev, { ...image, isFavorite: true }];
+          } else {
+            toast.info("Uklonjeno iz omiljenih");
+            return prev.filter((fav) => (fav._id || fav.id) !== imageId);
+          }
+        });
+
+        // Update image history state to reflect favorite status
+        setImageHistory((prev) =>
+          prev.map((img) =>
+            (img._id || img.id) === imageId
+              ? { ...img, isFavorite: response.data.isFavorite }
+              : img
+          )
+        );
+
+        // Update generated image if it matches
+        if (
+          generatedImage &&
+          (generatedImage._id || generatedImage.id) === imageId
+        ) {
+          setGeneratedImage({
+            ...generatedImage,
+            isFavorite: response.data.isFavorite,
+          });
+        }
       }
-    });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("Greška pri promeni omiljenih");
+    }
   };
 
   const shareImage = async (image) => {
@@ -359,13 +381,21 @@ function Home() {
                     <button
                       onClick={() => toggleFavorite(generatedImage)}
                       className={`backdrop-blur-sm text-white p-3 rounded-xl transition-all transform hover:scale-110 ${
-                        favorites.some((fav) => fav.id === generatedImage.id)
-                          ? "bg-red-500/80 hover:bg-red-600/80"
+                        generatedImage.isFavorite
+                          ? "bg-pink-500/80 hover:bg-pink-600/80"
                           : "bg-white/20 hover:bg-white/30"
                       }`}
-                      title="Dodaj u omiljene"
+                      title={
+                        generatedImage.isFavorite
+                          ? "Ukloni iz omiljenih"
+                          : "Dodaj u omiljene"
+                      }
                     >
-                      <FiHeart className="w-6 h-6" />
+                      <FiHeart
+                        className={`w-6 h-6 ${
+                          generatedImage.isFavorite ? "fill-current" : ""
+                        }`}
+                      />
                     </button>
                     <button
                       onClick={() => shareImage(generatedImage)}
@@ -464,14 +494,26 @@ function Home() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {imageHistory.slice(1).map((image) => (
-                  <div key={image.id} className="relative group">
+                  <div key={image._id || image.id} className="relative group">
                     <img
                       src={image.imageUrl}
                       alt={image.prompt}
                       className="w-full h-48 object-cover rounded-xl cursor-pointer hover:scale-105 transition-transform duration-300 shadow-lg"
                       onClick={() => setGeneratedImage(image)}
                     />
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Favorite indicator */}
+                    {image.isFavorite && (
+                      <div className="absolute top-2 right-2">
+                        <div className="p-1.5 rounded-full bg-pink-500/90 backdrop-blur-sm">
+                          <FiHeart className="w-4 h-4 text-white fill-current" />
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className={`absolute top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${
+                        image.isFavorite ? "left-2" : "right-2"
+                      }`}
+                    >
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -488,13 +530,21 @@ function Home() {
                           toggleFavorite(image);
                         }}
                         className={`text-white p-2 rounded-lg backdrop-blur-sm transition-all ${
-                          favorites.some((fav) => fav.id === image.id)
-                            ? "bg-red-500/80 hover:bg-red-600/80"
+                          image.isFavorite
+                            ? "bg-pink-500/80 hover:bg-pink-600/80"
                             : "bg-black/50 hover:bg-black/70"
                         }`}
-                        title="Dodaj/ukloni iz omiljenih"
+                        title={
+                          image.isFavorite
+                            ? "Ukloni iz omiljenih"
+                            : "Dodaj u omiljene"
+                        }
                       >
-                        <FiHeart className="w-4 h-4" />
+                        <FiHeart
+                          className={`w-4 h-4 ${
+                            image.isFavorite ? "fill-current" : ""
+                          }`}
+                        />
                       </button>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-3 rounded-b-xl">
