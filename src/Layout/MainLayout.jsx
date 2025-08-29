@@ -1,11 +1,15 @@
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 
 function MainLayout() {
+  const navigate = useNavigate();
+  const handleNavigate = (path = "/") => {
+    navigate(path);
+  };
   return (
     <div>
-      <Header />
+      <Header onHomeClick={handleNavigate} />
       <Outlet />
       <Footer />
     </div>

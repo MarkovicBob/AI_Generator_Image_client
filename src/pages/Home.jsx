@@ -201,7 +201,7 @@ function Home() {
   // Header је сада глобалан у App.jsx
 
   return (
-    <div className="mt-25 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden flex flex-col">
+    <div className="mt-20 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden flex flex-col">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -inset-10 opacity-50">
@@ -263,7 +263,7 @@ function Home() {
                   <FiSettings className="w-5 h-5" />
                   Napredne opcije
                 </button>
-                <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-300 cursor-pointer select-none">
+                {/* <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-300 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={keepPrompt}
@@ -271,7 +271,7 @@ function Home() {
                     className="accent-purple-500 w-4 h-4"
                   />
                   Zadrži tekst posle generisanja
-                </label>
+                </label> */}
               </div>
 
               {/* Advanced Settings */}
@@ -364,8 +364,8 @@ function Home() {
                     onClick={() => setFullscreenImage(generatedImage)}
                   />
 
-                  {/* Image overlay controls */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
+                  {/* Image overlay controls - always visible on mobile, hover on desktop */}
+                  <div className="absolute inset-0 bg-black/50 sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
                     <button
                       onClick={() =>
                         downloadImage(
@@ -453,7 +453,10 @@ function Home() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {favorites.map((image) => (
-                  <div key={`fav-${image.id}`} className="relative group">
+                  <div
+                    key={`fav-${image._id || image.id}`}
+                    className="relative group"
+                  >
                     <img
                       src={image.imageUrl}
                       alt={image.prompt}
@@ -504,7 +507,7 @@ function Home() {
                     {/* Favorite indicator */}
                     {image.isFavorite && (
                       <div className="absolute top-2 right-2">
-                        <div className="p-1.5 rounded-full bg-pink-500/90 backdrop-blur-sm">
+                        <div className="p-1.5 rounded-full bg-blue-500/90 backdrop-blur-sm">
                           <FiHeart className="w-4 h-4 text-white fill-current" />
                         </div>
                       </div>
@@ -531,7 +534,7 @@ function Home() {
                         }}
                         className={`text-white p-2 rounded-lg backdrop-blur-sm transition-all ${
                           image.isFavorite
-                            ? "bg-pink-500/80 hover:bg-pink-600/80"
+                            ? "bg-blue-500/80 hover:bg-blue-600/80"
                             : "bg-black/50 hover:bg-black/70"
                         }`}
                         title={

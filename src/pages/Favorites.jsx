@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { FiDownload, FiHeart, FiMaximize2, FiShare2 } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -8,26 +9,40 @@ export default function Favorites() {
   const [fullscreenImage, setFullscreenImage] = React.useState(null);
   const navigate = useNavigate();
 
+  // Učitaj favorite iz backend-a
   React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem("favorites");
-      if (stored) setFavorites(JSON.parse(stored));
-    } catch (e) {
-      console.warn("Could not read favorites from localStorage", e);
-    }
+    const fetchFavorites = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/images");
+        if (Array.isArray(res.data)) {
+          const favImages = res.data.filter((img) => img.isFavorite);
+          setFavorites(favImages);
+        }
+      } catch (e) {
+        toast.error("Greška pri učitavanju omiljenih slika");
+      }
+    };
+    fetchFavorites();
   }, []);
 
-  const removeFromFavorites = (image) => {
-    setFavorites((prev) => {
-      const newFavorites = prev.filter((fav) => fav.id !== image.id);
-      try {
-        localStorage.setItem("favorites", JSON.stringify(newFavorites));
-      } catch (e) {
-        console.warn("Could not save favorites to localStorage", e);
+  // Ukloni iz favorita preko backend-a
+  const removeFromFavorites = async (image) => {
+    try {
+      const imageId = image._id || image.id;
+      const response = await axios.post(
+        `http://localhost:3000/images/${imageId}/favorite`
+      );
+      if (response.data.success && !response.data.isFavorite) {
+        setFavorites((prev) =>
+          prev.filter((fav) => (fav._id || fav.id) !== imageId)
+        );
+        toast.success("Uklonjeno iz omiljenih");
+      } else {
+        toast.error("Greška pri uklanjanju iz omiljenih");
       }
-      toast.success("Uklonjeno iz omiljenih");
-      return newFavorites;
-    });
+    } catch (e) {
+      toast.error("Greška pri komunikaciji sa serverom");
+    }
   };
 
   const downloadImage = async (imageUrl, prompt) => {
@@ -110,7 +125,7 @@ export default function Favorites() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {favorites.map((image) => (
           <div
-            key={image.id}
+            key={image._id || image.id}
             className="group relative bg-white/5 rounded-xl overflow-hidden backdrop-blur-sm border border-white/10"
           >
             <div className="aspect-square overflow-hidden">
