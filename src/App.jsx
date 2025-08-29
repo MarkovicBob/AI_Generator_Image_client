@@ -1,3 +1,4 @@
+import Favorites from "./pages/Favorites";
 import Home from "./pages/Home";
 import MainLayout from "./Layout/MainLayout";
 import NotFound from "./pages/NotFound";
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="/favorites" element={<Favorites />} />
 
           {/* NESTED ROUTES */}
           {/* <Route path="dashboard" element={<Dashboard />} />
