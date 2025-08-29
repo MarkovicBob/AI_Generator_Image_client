@@ -443,7 +443,7 @@ function Home() {
           </div>
         )}
 
-        {/* Favorites Section */}
+        {/* Favorites Section
         {favorites.length > 0 && (
           <div className="max-w-6xl mx-auto mb-8">
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 lg:p-8 border border-white/20 shadow-2xl">
@@ -485,7 +485,7 @@ function Home() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Image History */}
         {imageHistory.length > 1 && (
