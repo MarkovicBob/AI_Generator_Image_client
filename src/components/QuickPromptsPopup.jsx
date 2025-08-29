@@ -1,4 +1,3 @@
-import React from "react";
 import { FiX, FiZap } from "react-icons/fi";
 
 export default function QuickPromptsPopup({ isOpen, onClose, onSelectPrompt }) {
@@ -20,7 +19,7 @@ export default function QuickPromptsPopup({ isOpen, onClose, onSelectPrompt }) {
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-gradient-to-br from-purple-900/90 to-pink-900/90 rounded-2xl p-6 max-w-2xl w-full backdrop-blur-xl border border-white/20"
+        className="relative bg-gradient-to-br from-purple-900/90 to-blue-900/90 rounded-2xl p-6 max-w-2xl w-full backdrop-blur-xl border border-white/20"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">

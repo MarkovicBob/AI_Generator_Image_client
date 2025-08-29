@@ -30,7 +30,7 @@ function Home() {
   const [showQuickPrompts, setShowQuickPrompts] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [favorites, setFavorites] = useState([]);
-  // Load favorites and image history from backend on mount
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -198,8 +198,6 @@ function Home() {
     }
   };
 
-  // Header је сада глобалан у App.jsx
-
   return (
     <div className="mt-20 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden flex flex-col">
       {/* Animated background elements */}
@@ -207,7 +205,7 @@ function Home() {
         <div className="absolute -inset-10 opacity-50">
           <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
           <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+          <div className="absolute -bottom-10 left-20 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
         </div>
       </div>
 
@@ -239,82 +237,86 @@ function Home() {
             <div className="space-y-4 sm:space-y-6">
               {/* Prompt Input */}
               <div>
-                <label className="block text-white text-base sm:text-lg font-semibold mb-2 sm:mb-3 items-center gap-2">
-                  <FiImage className="text-purple-400" />
-                  Opišite vašu viziju:
-                </label>
+                <div className="flex flex-row justify-between items-center">
+                  <label className="flex flex-row text-white text-base sm:text-lg font-semibold mb-2 sm:mb-3 items-center gap-2">
+                    <FiImage className="text-blue-400" />
+                    Opišite vašu viziju:
+                  </label>
+
+                  {/* Settings Toggle + Keep prompt toggle */}
+                  <div className="flex items-center justify-between gap-4 flex-wrap py-3">
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                    >
+                      <FiSettings className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Advanced Settings */}
+                {showSettings && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-3">
+                        Veličina slike:
+                      </label>
+                      <select
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
+                        className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        disabled={isLoading}
+                      >
+                        <option className="text-black/50" value="1024x1024">
+                          Kvadrat (1024×1024)
+                        </option>
+                        <option className="text-black/50" value="1024x1792">
+                          Portret (1024×1792)
+                        </option>
+                        <option className="text-black/50" value="1792x1024">
+                          Pejzaž (1792×1024)
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-3">
+                        Kvalitet:
+                      </label>
+                      <select
+                        value={quality}
+                        onChange={(e) => setQuality(e.target.value)}
+                        className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        disabled={isLoading}
+                      >
+                        <option className="text-black/50" value="standard">
+                          Standardni
+                        </option>
+                        <option className="text-black/50" value="hd">
+                          HD (premium)
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* TEXTAREA */}
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Unesite detaljan opis slike koju želite... Budite kreativni!"
-                  className="w-full p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl bg-white/10 border border-white/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none text-sm sm:text-base lg:text-lg transition-all duration-200"
+                  className="w-full p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl bg-white/10 border border-white/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-sm sm:text-base lg:text-lg transition-all duration-200"
                   rows="4"
                   disabled={isLoading}
                 />
               </div>
 
-              {/* Settings Toggle + Keep prompt toggle */}
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-                >
-                  <FiSettings className="w-5 h-5" />
-                  Napredne opcije
-                </button>
-                {/* <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-300 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={keepPrompt}
-                    onChange={(e) => setKeepPrompt(e.target.checked)}
-                    className="accent-purple-500 w-4 h-4"
-                  />
-                  Zadrži tekst posle generisanja
-                </label> */}
-              </div>
-
-              {/* Advanced Settings */}
-              {showSettings && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-3">
-                      Veličina slike:
-                    </label>
-                    <select
-                      value={size}
-                      onChange={(e) => setSize(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      disabled={isLoading}
-                    >
-                      <option value="1024x1024">Kvadrat (1024×1024)</option>
-                      <option value="1024x1792">Portret (1024×1792)</option>
-                      <option value="1792x1024">Pejzaž (1792×1024)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-3">
-                      Kvalitet:
-                    </label>
-                    <select
-                      value={quality}
-                      onChange={(e) => setQuality(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      disabled={isLoading}
-                    >
-                      <option value="standard">Standardni</option>
-                      <option value="hd">HD (premium)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
               {/* Generate Button */}
               <button
                 onClick={generateImage}
                 disabled={isLoading || !prompt.trim()}
-                className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 lg:py-5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 disabled:cursor-not-allowed text-base sm:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 active:translate-y-0 disabled:transform-none disabled:opacity-70"
+                className="w-full bg-gradient-to-r from-purple-600 via-blue-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 lg:py-5 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 disabled:cursor-not-allowed text-base sm:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 active:translate-y-0 disabled:transform-none disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -382,7 +384,7 @@ function Home() {
                       onClick={() => toggleFavorite(generatedImage)}
                       className={`backdrop-blur-sm text-white p-3 rounded-xl transition-all transform hover:scale-110 ${
                         generatedImage.isFavorite
-                          ? "bg-pink-500/80 hover:bg-pink-600/80"
+                          ? "bg-blue-500/80 hover:bg-blue-600/80"
                           : "bg-white/20 hover:bg-white/30"
                       }`}
                       title={
