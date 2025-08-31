@@ -12,15 +12,6 @@ function App() {
           <Route index element={<Home />} />
           <Route path="/favorites" element={<Favorites />} />
 
-          {/* NESTED ROUTES */}
-          {/* <Route path="dashboard" element={<Dashboard />} />
-          <Route path="dashboard/profile" element={<Profile />} />
-          <Route path="dashboard/settings" element={<Settings />} /> */}
-
-          {/* DYNAMIC ROUTES */}
-          {/* <Route path="products" element={<ProductList />} />
-          <Route path="products/:productId" element={<Product />} /> */}
-
           {/* NOT FOUND */}
           <Route path="*" element={<NotFound />} />
         </Route>
