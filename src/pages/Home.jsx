@@ -30,6 +30,7 @@ function Home() {
   const [showQuickPrompts, setShowQuickPrompts] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const promptLength = prompt.trim().length;
 
   useEffect(() => {
     const loadData = async () => {
@@ -251,6 +252,15 @@ function Home() {
                     >
                       <FiSettings className="w-5 h-5" />
                     </button>
+                    <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={keepPrompt}
+                        onChange={(e) => setKeepPrompt(e.target.checked)}
+                        className="h-4 w-4 rounded border-white/30 bg-white/10 text-purple-500 focus:ring-2 focus:ring-purple-400"
+                      />
+                      Zadrži prompt nakon generiranja
+                    </label>
                   </div>
                 </div>
 
@@ -310,6 +320,15 @@ function Home() {
                   rows="4"
                   disabled={isLoading}
                 />
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-gray-400 mt-2">
+                  <span>
+                    Savet: navedite stil, atmosferu i detalje (npr. svetlo,
+                    boje, kompoziciju).
+                  </span>
+                  <span className="text-gray-300">
+                    {promptLength} karaktera
+                  </span>
+                </div>
               </div>
 
               {/* Generate Button */}
